@@ -21,7 +21,7 @@ class TodoListViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+    
         loadData()
     }
     
@@ -55,7 +55,7 @@ class TodoListViewController: UITableViewController {
         let action = UIAlertAction(title: "Add item", style: .default) {
             (action) in
             if textField.text != "" {
-                let item = Item()
+                let item = Item(context: self.context)
                 item.title = textField.text!
                 item.done = false
                 self.itemArray.append(item)
@@ -80,16 +80,45 @@ class TodoListViewController: UITableViewController {
             print("Error encoding item array, \(error)")
         }
         
-        self.tableView.reloadData()
+        tableView.reloadData()
     }
     
-//    private func loadData(){
-//            do {
-//                
-//            } catch {
-//                print("Error decoding item array, \(error)")
-//            }
-//        }
-//    }
+    private func loadData(with request: NSFetchRequest<Item> = Item.fetchRequest()){
+            do {
+                itemArray = try context.fetch(request)
+            } catch {
+                print("Error decoding item array, \(error)")
+            }
+        
+        tableView.reloadData()
+    }
+}
+
+//MARK: - Search bar methods
+
+extension TodoListViewController : UISearchBarDelegate {
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
+        
+    
+            let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+            request.predicate = predicate
+            let sortDescr = NSSortDescriptor(key: "title", ascending: true)
+             request.sortDescriptors = [sortDescr]
+        
+        
+        loadData(with: request)
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0{
+            loadData()
+            
+            DispatchQueue.main.async {
+                 searchBar.resignFirstResponder()
+            }
+        }
+    }
 }
 
