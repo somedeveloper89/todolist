@@ -8,27 +8,35 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class CategoryTableViewController: SwipeTableViewController {
     
     let realm = try! Realm()
     
     var categories: Results<Category>?
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         loadData()
+        tableView.separatorStyle = .none
     }
-
+    
     // MARK: - Table view data source
-
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return categories?.count ?? 1
     }
-
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
-        cell.textLabel?.text = categories?[indexPath.row].name ?? "No categories added yet"
+        
+        if let category = categories?[indexPath.row] {
+            cell.textLabel?.text = category.name
+            cell.backgroundColor = UIColor(hexString: category.hexColor)
+        } else {
+            cell.textLabel?.text = "No categories added yet"
+        }
         return cell
     }
     
@@ -45,6 +53,7 @@ class CategoryTableViewController: SwipeTableViewController {
             if textField.text != "" {
                 let category = Category()
                 category.name = textField.text!
+                category.hexColor = UIColor.randomFlat.hexValue()
                 self.saveData(with: category)
             }
         }
